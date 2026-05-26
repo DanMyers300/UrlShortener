@@ -16,6 +16,7 @@
             dotnet-sdk_9
             omnisharp-roslyn
             netcoredbg
+            dotnet-ef
           ];
 
           env = {
