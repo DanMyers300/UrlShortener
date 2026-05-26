@@ -10,6 +10,9 @@ public class ShortUrl {
 
 class Program {
   static void Main(string[] args) {
-    
+    var app = WebApplication.Create(args);
+
+    app.MapGet("/", () => "Hello World!");
+    app.Run();
   }
 }
