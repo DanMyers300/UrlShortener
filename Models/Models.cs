@@ -1,4 +1,4 @@
-namespace UrlShortener;
+namespace UrlShortener.Models;
 
 public class ShortUrl {
   public int Id { get; set; }
@@ -8,11 +8,4 @@ public class ShortUrl {
   public DateTime CreatedAt { get; set; }
 }
 
-class Program {
-  static void Main(string[] args) {
-    var app = WebApplication.Create(args);
-
-    app.MapGet("/", () => "Hello World!");
-    app.Run();
-  }
-}
+public record ShortenRequest(string Url);
