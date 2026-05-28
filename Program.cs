@@ -1,33 +1,31 @@
 using Microsoft.EntityFrameworkCore;
+using UrlShortener;
 using UrlShortener.Data;
 using UrlShortener.Models;
-using System.Text;
+
+
+// --- SETUP --- //
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Needed for docker connections
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=urlshortener.db";
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
+
 var app = builder.Build();
+
+// Setup front end
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-static string ToBase62(int id) {
-  var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  var result = new StringBuilder();
 
-  while (id > 0) {
-    result.Insert(0, chars[id % 62]);
-    id /= 62;
-  }
+// --- METHODS --- //
 
-  return result.ToString();
-}
 
 app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db, HttpContext ctx) => {
   var url = req.Url;
-
-  if (string.IsNullOrWhiteSpace(url)) {
-    return Results.BadRequest("Must provide a URL");
-  }
 
   Uri.TryCreate(url, UriKind.Absolute, out var uri);
 
@@ -46,15 +44,16 @@ app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db, HttpContext 
   await db.SaveChangesAsync();
 
   // Encode the Id but ensure at least 6 characters
-  var code = ToBase62(shortUrl.Id * 56_800_235);
+  var code = Base62Tools.ToBase62(shortUrl.Id * 56_800_235);
 
   shortUrl.Code = code;
 
   await db.SaveChangesAsync();
 
   var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
-  return Results.Created($"/{code}", new { code, shortUrl = $"baseUrl/{code}" });
+  return Results.Created($"/{code}", new { code, shortUrl = $"{baseUrl}/{code}" });
 });
+
 
 app.MapGet("/{code}", async (string code, AppDbContext db) => {
   var shortUrl = await db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
@@ -65,5 +64,9 @@ app.MapGet("/{code}", async (string code, AppDbContext db) => {
 
   return Results.Redirect(shortUrl.LongUrl);
 });
+
+
+// --- RUN --- //
+
 
 app.Run();
