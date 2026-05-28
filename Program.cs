@@ -4,7 +4,8 @@ using UrlShortener.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=urlshortener.db"));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=urlshortener.db";
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
 var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
