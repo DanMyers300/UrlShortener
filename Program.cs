@@ -7,17 +7,24 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data S
 
 var app = builder.Build();
 
-app.MapPost("/shorten", (ShortenRequest req, AppDbContext db) => {
+app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db) => {
   var url = req.Url;
 
-  if (string.IsNullOrEmpty(url)) {
-    return Results.BadRequest("Must provide a url");
-  }
-
   if (string.IsNullOrWhiteSpace(url)) {
-    return Results.BadRequest("Must provide a url");
+    return Results.BadRequest("Must provide a URL");
   }
 
+  Uri.TryCreate(url, UriKind.Absolute, out var uri);
+
+  if (uri == null) {
+    return Results.BadRequest("Not a valid URI");
+  }
+
+  if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) {
+    return Results.BadRequest("Must be http/https link");
+  }
+
+  return Results.Ok();
 });
 
 app.Run();
