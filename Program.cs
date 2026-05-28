@@ -1,15 +1,25 @@
 using Microsoft.EntityFrameworkCore;
 using UrlShortener.Data;
 using UrlShortener.Models;
-using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=urlshortener.db"));
-
 var app = builder.Build();
 
-app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db) => {
+static string ToBase62(int id) {
+  var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  var result = new StringBuilder();
+
+  while (id > 0) {
+    result.Insert(0, chars[id % 62]);
+    id /= 62;
+  }
+
+  return result.ToString();
+}
+
+app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db, HttpContext ctx) => {
   var url = req.Url;
 
   if (string.IsNullOrWhiteSpace(url)) {
@@ -26,22 +36,21 @@ app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db) => {
     return Results.BadRequest("Must be http/https link");
   }
 
-  bool exists = await db.ShortUrls.AnyAsync(s => s.LongUrl == url);
+  var shortUrl = new ShortUrl { LongUrl = url, CreatedAt = DateTime.UtcNow };
 
-  if (exists) {
-    // To-Do: Return existing short code
-  }
+  db.ShortUrls.Add(shortUrl);
 
-  var allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  var shortCode = new StringBuilder();
+  await db.SaveChangesAsync();
 
-  for (int i = 0; i < 5; i++) {
-    var index = RandomNumberGenerator.GetInt32(0, allowedChars.Length);
-    shortCode.Append(allowedChars[index]);
-    Console.WriteLine(shortCode);
-  }
+  // Encode the Id but ensure at least 6 characters
+  var code = ToBase62(shortUrl.Id * 56_800_235);
 
-  return Results.Ok();
+  shortUrl.Code = code;
+
+  await db.SaveChangesAsync();
+
+  var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+  return Results.Created($"/{code}", new { code, shortUrl = $"baseUrl/{code}" });
 });
 
 app.Run();

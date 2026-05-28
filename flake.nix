@@ -17,6 +17,7 @@
             omnisharp-roslyn
             netcoredbg
             dotnet-ef
+            sqlite
           ];
 
           env = {
