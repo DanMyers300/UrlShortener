@@ -6,6 +6,8 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=urlshortener.db"));
 var app = builder.Build();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 static string ToBase62(int id) {
   var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
