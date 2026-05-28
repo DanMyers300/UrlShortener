@@ -46,23 +46,20 @@ app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db, HttpContext 
   // Encode the Id but ensure at least 6 characters
   var code = Base62Tools.ToBase62(shortUrl.Id * 56_800_235);
 
-  shortUrl.Code = code;
-
-  await db.SaveChangesAsync();
-
   var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
   return Results.Created($"/{code}", new { code, shortUrl = $"{baseUrl}/{code}" });
 });
 
 
 app.MapGet("/{code}", async (string code, AppDbContext db) => {
-  var shortUrl = await db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
+  var id = Base62Tools.FromBase62(code) / 56_800_235;
 
-  if (shortUrl == null) {
-    return Results.NotFound("Short URL not found");
-  }
+  var url = await db.ShortUrls.FindAsync(id);
 
-  return Results.Redirect(shortUrl.LongUrl);
+  if (url == null) return Results.NotFound("Short URL not found");
+
+  return Results.Redirect(url.LongUrl);
+
 });
 
 

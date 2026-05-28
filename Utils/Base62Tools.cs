@@ -3,7 +3,6 @@ using System.Text;
 namespace UrlShortener;
 
 public class Base62Tools {
-
   public static string ToBase62(int id) {
     var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     var result = new StringBuilder();
@@ -14,5 +13,16 @@ public class Base62Tools {
     }
   
     return result.ToString();
+  }
+
+  public static int FromBase62(string code) {
+    var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    var result = 0;
+
+    foreach (var c in code) {
+      result = result * 62 + chars.IndexOf(c);
+    }
+
+    return result;
   }
 }
