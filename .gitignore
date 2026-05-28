@@ -1,2 +1,18 @@
 obj/
 bin/
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# User-specific VS/Rider files
+*.user
+.vs/
+.idea/
+
+# Local settings override
+appsettings.Local.json
+
+# dotnet publish output
+publish/
