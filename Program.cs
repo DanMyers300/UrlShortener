@@ -47,7 +47,9 @@ app.MapPost("/shorten", async (ShortenRequest req, AppDbContext db, HttpContext 
   var code = Base62Tools.ToBase62(shortUrl.Id * 56_800_235);
 
   var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+
   return Results.Created($"/{code}", new { code, shortUrl = $"{baseUrl}/{code}" });
+
 });
 
 
