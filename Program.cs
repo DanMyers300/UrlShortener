@@ -8,6 +8,15 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data S
 var app = builder.Build();
 
 app.MapPost("/shorten", (ShortenRequest req, AppDbContext db) => {
+  var url = req.Url;
+
+  if (string.IsNullOrEmpty(url)) {
+    return Results.BadRequest("Must provide a url");
+  }
+
+  if (string.IsNullOrWhiteSpace(url)) {
+    return Results.BadRequest("Must provide a url");
+  }
 
 });
 
