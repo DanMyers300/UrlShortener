@@ -1,8 +1,18 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
   app:
     build: .
-    ports:
-      - "8080:8080"
     volumes:
       - db-data:/app/data
     environment:
@@ -10,3 +20,5 @@ services:
 
 volumes:
   db-data:
+  caddy-data:
+  caddy-config:
